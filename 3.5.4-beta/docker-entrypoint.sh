@@ -38,4 +38,14 @@ if [[ ! -f "$ZOO_DATA_DIR/myid" ]]; then
     echo "${ZOO_MY_ID:-1}" > "$ZOO_DATA_DIR/myid"
 fi
 
+# if k8s statefulset
+if [[ -n $ZOO_K8S ]]; then
+    hostname=`hostname`
+    index=${hostname##*-}
+    expr $index "+" 10 &> /dev/null
+    if [[ $? -eq 0 ]];then
+        echo "${index}" > "$ZOO_DATA_DIR/myid"
+    fi
+if
+
 exec "$@"
