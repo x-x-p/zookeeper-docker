@@ -22,15 +22,18 @@ if [[ ! -f "$ZOO_CONF_DIR/zoo.cfg" ]]; then
     echo "autopurge.snapRetainCount=$ZOO_AUTOPURGE_SNAPRETAINCOUNT" >> "$CONFIG"
     echo "autopurge.purgeInterval=$ZOO_AUTOPURGE_PURGEINTERVAL" >> "$CONFIG"
     echo "maxClientCnxns=$ZOO_MAX_CLIENT_CNXNS" >> "$CONFIG"
-    echo "standaloneEnabled=$ZOO_STANDALONE_ENABLED" >> "$CONFIG"
-
-    if [[ -z $ZOO_SERVERS ]]; then
-      ZOO_SERVERS="server.1=localhost:2888:3888;$ZOO_PORT"
+    
+    if [[ -z $ZOO_K8S_NAME ]]; then
+        echo "standaloneEnabled=$ZOO_STANDALONE_ENABLED" >> "$CONFIG"
+    
+        if [[ -z $ZOO_SERVERS ]]; then
+            ZOO_SERVERS="server.1=localhost:2888:3888;$ZOO_PORT"
+        fi
+    
+        for server in $ZOO_SERVERS; do
+            echo "$server" >> "$CONFIG"
+        done
     fi
-
-    for server in $ZOO_SERVERS; do
-        echo "$server" >> "$CONFIG"
-    done
 fi
 
 # Write myid only if it doesn't exist
@@ -39,13 +42,21 @@ if [[ ! -f "$ZOO_DATA_DIR/myid" ]]; then
 fi
 
 # if k8s statefulset
-if [[ -n $ZOO_K8S ]]; then
+if [[ -n $ZOO_K8S_NAME ]]; then
     hostname=`hostname`
     index=${hostname##*-}
     expr $index "+" 10 &> /dev/null
     if [[ $? -eq 0 ]];then
         echo "${index}" > "$ZOO_DATA_DIR/myid"
     fi
+    if [[ -z "$ZOO_REPLICAS" ]]; then
+       ZOO_REPLICAS=3
+    fi
+    domain=`hostname -d`
+    for ((i=0; i<=$ZOO_REPLICAS; i++))
+    do
+        echo "server.$i=$ZOO_K8S_NAME-$i.$domain:2888:3888" >> "$CONFIG"
+    done
 fi
 
 exec "$@"
