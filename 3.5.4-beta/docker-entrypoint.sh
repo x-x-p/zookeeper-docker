@@ -50,7 +50,7 @@ if [[ -n "$ZOO_K8S_REPLICAS" ]]; then
  
     echo "${index}" > "$ZOO_DATA_DIR/myid"
     
-    for ((i=0; i<=$ZOO_K8S_REPLICAS; i++))
+    for ((i=0; i<$ZOO_K8S_REPLICAS; i++))
     do
         echo "server.$i=$name-$i.$domain:2888:3888" >> "$CONFIG"
     done
