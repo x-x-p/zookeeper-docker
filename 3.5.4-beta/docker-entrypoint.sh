@@ -46,6 +46,6 @@ if [[ -n $ZOO_K8S ]]; then
     if [[ $? -eq 0 ]];then
         echo "${index}" > "$ZOO_DATA_DIR/myid"
     fi
-if
+fi
 
 exec "$@"
