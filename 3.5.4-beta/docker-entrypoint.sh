@@ -23,7 +23,7 @@ if [[ ! -f "$ZOO_CONF_DIR/zoo.cfg" ]]; then
     echo "autopurge.purgeInterval=$ZOO_AUTOPURGE_PURGEINTERVAL" >> "$CONFIG"
     echo "maxClientCnxns=$ZOO_MAX_CLIENT_CNXNS" >> "$CONFIG"
     
-    if [[ -z $ZOO_K8S_NAME ]]; then
+    if [[ -z "$ZOO_K8S_REPLICAS" ]]; then
         echo "standaloneEnabled=$ZOO_STANDALONE_ENABLED" >> "$CONFIG"
     
         if [[ -z $ZOO_SERVERS ]]; then
@@ -42,20 +42,17 @@ if [[ ! -f "$ZOO_DATA_DIR/myid" ]]; then
 fi
 
 # if k8s statefulset
-if [[ -n $ZOO_K8S_NAME ]]; then
+if [[ -n "$ZOO_K8S_REPLICAS" ]]; then
     hostname=`hostname`
+    name=${hostname%-*}
     index=${hostname##*-}
-    expr $index "+" 10 &> /dev/null
-    if [[ $? -eq 0 ]];then
-        echo "${index}" > "$ZOO_DATA_DIR/myid"
-    fi
-    if [[ -z "$ZOO_REPLICAS" ]]; then
-       ZOO_REPLICAS=3
-    fi
     domain=`hostname -d`
-    for ((i=0; i<=$ZOO_REPLICAS; i++))
+ 
+    echo "${index}" > "$ZOO_DATA_DIR/myid"
+    
+    for ((i=0; i<=$ZOO_K8S_REPLICAS; i++))
     do
-        echo "server.$i=$ZOO_K8S_NAME-$i.$domain:2888:3888" >> "$CONFIG"
+        echo "server.$i=$name-$i.$domain:2888:3888" >> "$CONFIG"
     done
 fi
 
