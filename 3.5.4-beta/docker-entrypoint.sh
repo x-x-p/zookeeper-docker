@@ -12,6 +12,7 @@ fi
 if [[ ! -f "$ZOO_CONF_DIR/zoo.cfg" ]]; then
     CONFIG="$ZOO_CONF_DIR/zoo.cfg"
 
+    echo "clientPort=$ZOO_PORT" >> "$CONFIG"
     echo "dataDir=$ZOO_DATA_DIR" >> "$CONFIG"
     echo "dataLogDir=$ZOO_DATA_LOG_DIR" >> "$CONFIG"
 
